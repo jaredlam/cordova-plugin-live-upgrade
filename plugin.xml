@@ -32,6 +32,10 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
 
-        <source-file src="src/android/AppUpdate.java" target-dir="src/jared/appupdate/cordova" />
+        <source-file src="src/android/AppUpdate.java" target-dir="src/com/appupdate/update" />
+        <source-file src="src/android/Decompressor.java" target-dir="src/com/appupdate/update" />
+        <source-file src="src/android/Downloader.java" target-dir="src/com/appupdate/update" />
+        <source-file src="src/android/FileUtils.java" target-dir="src/com/appupdate/update" />
+        <source-file src="src/android/Updater.java" target-dir="src/com/appupdate/update" />
     </platform>
 </plugin>
