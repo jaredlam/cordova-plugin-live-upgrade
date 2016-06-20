@@ -6,7 +6,7 @@
     id="cordova-plugin-live-upgrade"
     version="0.0.1">
 
-    <name>AppUpdate</name>
+    <name>LiveUpgrade</name>
     <description>Cordova plugin for update APP</description>
     <license>MIT</license>
     <keywords>cordova,app,update</keywords>
