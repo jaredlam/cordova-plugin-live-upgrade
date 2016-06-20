@@ -16,8 +16,8 @@
         <engine name="cordova" version=">=6.0" />
     </engines>
     <!-- js module-->
-    <js-module src="www/appUpdate.js" name="appUpdate">
-        <clobbers target="appUpdate" />
+    <js-module src="www/liveUpgrade.js" name="liveUpgrade">
+        <clobbers target="liveUpgrade" />
     </js-module>
     
     <!-- android -->
