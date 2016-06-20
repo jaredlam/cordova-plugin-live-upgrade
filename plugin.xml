@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:rim="http://www.blackberry.com/ns/widgets"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="cordova-plugin-live-upgrade"
+    version="0.0.1">
+
+    <name>AppUpdate</name>
+    <description>Cordova plugin for update APP</description>
+    <license>MIT</license>
+    <keywords>cordova,app,update</keywords>
+
+    <!--require cordova version -->
+    <engines>
+        <engine name="cordova" version="6.0" />
+    </engines>
+    <!-- js module-->
+    <js-module src="www/appUpdate.js" name="appUpdate">
+        <clobbers target="appUpdate" />
+    </js-module>
+    
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="AppUpdate">
+                <param name="android-package" value="com.appupdate.update.AppUpdate"/>
+            </feature>
+        </config-file>
+        
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+        </config-file>
+
+        <source-file src="src/android/AppUpdate.java" target-dir="src/jared/appupdate/cordova" />
+    </platform>
+</plugin>

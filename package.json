@@ -1,0 +1,25 @@
+{
+  "name": "cordova-plugin-live-upgrade",
+  "version": "0.0.1",
+  "description": "A cordova plugin for live update APP",
+  "cordova": {
+    "id": "cordova-plugin-appupdate",
+    "platforms": [
+      "android"
+    ]
+  },
+  "keywords": [
+    "cordova",
+    "app",
+    "update",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=6.0"
+    }
+  ],
+  "author": "Jared.M.Luo <jaredlam86@gmail.com>",
+  "license": "MIT"
+}
