@@ -12,12 +12,43 @@ public class ManifestEntity {
     public static final String JSON_KEY_LATEST_VERSION = "latest_version";
     public static final String JSON_KEY_RELEASE_NOTE = "release_note";
     public static final String JSON_KEY_DOWNLOAD_URL = "download_url";
+    public static final String JSON_KEY_TITLE = "title";
+    public static final String JSON_KEY_CONFIRM_TEXT = "confirm_text";
+    public static final String JSON_KEY_CANCEL_TEXT = "cancel_text";
+
 
     private List<String> required_versions;
     private List<String> optional_versions;
     private String latest_version;
     private String release_note;
     private String download_url;
+    private String title;
+    private String confirm_text;
+    private String cancel_text;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getConfirm_text() {
+        return confirm_text;
+    }
+
+    public void setConfirm_text(String confirm_text) {
+        this.confirm_text = confirm_text;
+    }
+
+    public String getCancel_text() {
+        return cancel_text;
+    }
+
+    public void setCancel_text(String cancel_text) {
+        this.cancel_text = cancel_text;
+    }
 
     public String getLatest_version() {
         return latest_version;

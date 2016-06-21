@@ -1,8 +1,10 @@
 package com.appupdate.update;
 
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
@@ -27,12 +29,16 @@ public class Downloader {
 
     private static long mCurrentDownloadID;
     private static String mNewVersion;
+    private static boolean mIsRequired;
+    private static ManifestEntity mManifestEntity;
 
     public static void init(Context context) {
+        mIsRequired = false;
+        mManifestEntity = null;
         IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(final Context context, Intent intent) {
                 long downloadID = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
                 if (mCurrentDownloadID == downloadID) {
                     DownloadManager.Query query = new DownloadManager.Query();
@@ -48,7 +54,28 @@ public class Downloader {
                             if (fileName.endsWith(".zip") && !TextUtils.isEmpty(mNewVersion)) {
                                 //new package
                                 decompressZip(fileUrl, mNewVersion);
-                                Updater.saveVersion(context, mNewVersion);
+                                if (mManifestEntity != null) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mManifestEntity.getTitle())
+                                            .setMessage(mManifestEntity.getRelease_note())
+                                            .setNegativeButton(mManifestEntity.getConfirm_text(), new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    Updater.saveVersion(context, mNewVersion);
+                                                }
+                                            });
+
+                                    if (mIsRequired) {
+                                        builder.setCancelable(false).show();
+                                    } else {
+                                        builder.setCancelable(true)
+                                                .setNegativeButton(mManifestEntity.getCancel_text(), new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        Updater.saveVersion(context, mNewVersion);
+                                                    }
+                                                }).show();
+                                    }
+                                }
                             } else if (fileName.endsWith(".json")) {
                                 //upgrade config file
                                 checkUpdate(context, fileUrl);
@@ -64,14 +91,18 @@ public class Downloader {
     }
 
     private static void checkUpdate(Context context, String fileUrl) {
-        ManifestEntity manifestEntity = getManifestEntity(fileUrl);
-        if (manifestEntity != null) {
+        mManifestEntity = getManifestEntity(fileUrl);
+        if (mManifestEntity != null) {
             String localVersion = Updater.getVersion(context);
-            if (isOptional(manifestEntity, localVersion)) {
-                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLatest_version());
-            } else if (isRequired(manifestEntity, localVersion)) {
-                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLatest_version());
+            boolean isOptional = isOptional(mManifestEntity, localVersion);
+            boolean isRequired = isRequired(mManifestEntity, localVersion);
+
+            mIsRequired = isRequired;
+            if (isOptional || isRequired) {
+                Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
             }
+
+
         } else {
             Log.e(Updater.TAG, "manifest entity deserialization failed.");
         }
@@ -138,6 +169,9 @@ public class Downloader {
                         String latestVersion = jsonObject.getString(ManifestEntity.JSON_KEY_LATEST_VERSION);
                         String note = jsonObject.getString(ManifestEntity.JSON_KEY_RELEASE_NOTE);
                         String downloadUrl = jsonObject.getString(ManifestEntity.JSON_KEY_DOWNLOAD_URL);
+                        String title = jsonObject.getString(ManifestEntity.JSON_KEY_TITLE);
+                        String confirmTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CONFIRM_TEXT);
+                        String cancelTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CANCEL_TEXT);
 
                         manifest = new ManifestEntity();
                         manifest.setRequired_versions(reqVersions);
@@ -145,6 +179,9 @@ public class Downloader {
                         manifest.setLatest_version(latestVersion);
                         manifest.setRelease_note(note);
                         manifest.setDownload_url(downloadUrl);
+                        manifest.setTitle(title);
+                        manifest.setConfirm_text(confirmTxt);
+                        manifest.setCancel_text(cancelTxt);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
