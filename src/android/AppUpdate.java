@@ -3,11 +3,9 @@ package com.appupdate.update;
 import android.text.TextUtils;
 
 import org.apache.cordova.CallbackContext;
-import org.apache.cordova.ConfigXmlParser;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaPreferences;
 import org.apache.cordova.CordovaWebView;
 import org.json.JSONException;
 
@@ -21,11 +19,6 @@ public class AppUpdate extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         mWebView = webView;
-
-        ConfigXmlParser parser = new ConfigXmlParser();
-        parser.parse(this.cordova.getActivity());
-        CordovaPreferences preferences = parser.getPreferences();
-        String version = preferences.getString("app-update-version", "1.0");
 
         Updater.init(this.cordova.getActivity());
         Downloader.init(this.cordova.getActivity());
@@ -46,7 +39,7 @@ public class AppUpdate extends CordovaPlugin {
             this.mWebView.loadUrlIntoView(url, false);
         }
 
-        Downloader.download(this.cordova.getActivity(), "http://172.16.0.246:8082/labor_AppMsite_release_0.0.5.zip", "2.0");
+        Downloader.downloadManifest(this.cordova.getActivity(), "http://172.16.0.246:8082/upgrade_manifest.json");
         callbackContext.success();
         return true;
     }

@@ -1,11 +1,16 @@
 package com.appupdate.update;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
+
+import org.apache.cordova.ConfigXmlParser;
+import org.apache.cordova.CordovaPreferences;
 
 import java.io.File;
 
@@ -18,10 +23,16 @@ public class Updater {
 
     private static Uri sRootUri;
     private static Uri sVersionRootUri;
+    private static String mDefaultVersion;
 
-    public static void init(Context context) {
+    public static void init(Activity activity) {
 
-        String version = getVersion(context);
+        ConfigXmlParser parser = new ConfigXmlParser();
+        parser.parse(activity);
+        CordovaPreferences preferences = parser.getPreferences();
+        mDefaultVersion = preferences.getString("app-update-version", "1.0");
+
+        String version = getVersion(activity);
 
         String rootPathStr = Environment.getExternalStorageDirectory() + "/LaborApp";
         sRootUri = Uri.fromFile(new File(rootPathStr));
@@ -61,8 +72,11 @@ public class Updater {
 
     public static String getVersion(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getString(PREF_VERSION_KEY, null);
+        String savedVersion = preferences.getString(PREF_VERSION_KEY, null);
+        if (TextUtils.isEmpty(savedVersion)) {
+            savedVersion = mDefaultVersion;
+        }
+        return savedVersion;
     }
-
 
 }

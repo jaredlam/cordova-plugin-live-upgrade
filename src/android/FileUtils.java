@@ -2,10 +2,15 @@ package com.appupdate.update;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.text.TextUtils;
 import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +53,40 @@ public class FileUtils {
         }
     }
 
+    public static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
+                deleteRecursive(child);
+            }
+
+            fileOrDirectory.delete();
+        }
+    }
+
+    public static JSONObject readJsonFromFile(File jsonFile) throws JSONException {
+        String jsonStr = null;
+        try {
+            InputStream is = new FileInputStream(jsonFile);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            jsonStr = new String(buffer, "UTF-8");
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JSONObject jsonObject = null;
+        if (!TextUtils.isEmpty(jsonStr)) {
+            jsonObject = new JSONObject(jsonStr);
+        }
+
+        return jsonObject;
+    }
+
     // If targetLocation does not exist, it will be created.
     public static void copyDirectory(File sourceLocation, File targetLocation)
             throws IOException {
@@ -84,14 +123,6 @@ public class FileUtils {
         }
     }
 
-    public static void deleteFolder(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (String child : children) {
-                new File(dir, child).delete();
-            }
-        }
-    }
 
     private static void copyFile(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];

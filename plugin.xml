@@ -37,5 +37,6 @@
         <source-file src="src/android/Downloader.java" target-dir="src/com/appupdate/update" />
         <source-file src="src/android/FileUtils.java" target-dir="src/com/appupdate/update" />
         <source-file src="src/android/Updater.java" target-dir="src/com/appupdate/update" />
+        <source-file src="src/android/ManifestEntity.java" target-dir="src/com/appupdate/update" />
     </platform>
 </plugin>
