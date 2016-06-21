@@ -9,22 +9,22 @@ public class ManifestEntity {
 
     public static final String JSON_KEY_REQUIRED_VERSIONS = "required_versions";
     public static final String JSON_KEY_OPTIONAL_VERSIONS = "optional_versions";
-    public static final String JSON_KEY_LASTEST_VERSION = "lastest_version";
+    public static final String JSON_KEY_LATEST_VERSION = "latest_version";
     public static final String JSON_KEY_RELEASE_NOTE = "release_note";
     public static final String JSON_KEY_DOWNLOAD_URL = "download_url";
 
     private List<String> required_versions;
     private List<String> optional_versions;
-    private String lastest_version;
+    private String latest_version;
     private String release_note;
     private String download_url;
 
-    public String getLastest_version() {
-        return lastest_version;
+    public String getLatest_version() {
+        return latest_version;
     }
 
-    public void setLastest_version(String lastest_version) {
-        this.lastest_version = lastest_version;
+    public void setLatest_version(String latest_version) {
+        this.latest_version = latest_version;
     }
 
     public List<String> getOptional_versions() {

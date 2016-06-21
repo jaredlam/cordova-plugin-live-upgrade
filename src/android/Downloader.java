@@ -68,9 +68,9 @@ public class Downloader {
         if (manifestEntity != null) {
             String localVersion = Updater.getVersion(context);
             if (isOptional(manifestEntity, localVersion)) {
-                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLastest_version());
+                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLatest_version());
             } else if (isRequired(manifestEntity, localVersion)) {
-                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLastest_version());
+                Downloader.downloadPackage(context, manifestEntity.getDownload_url(), manifestEntity.getLatest_version());
             }
         } else {
             Log.e(Updater.TAG, "manifest entity deserialization failed.");
@@ -135,13 +135,14 @@ public class Downloader {
                         for (int i = 0; i < opVersionJsonArr.length(); i++) {
                             opVersions.add(opVersionJsonArr.getString(i));
                         }
-
+                        String latestVersion = jsonObject.getString(ManifestEntity.JSON_KEY_LATEST_VERSION);
                         String note = jsonObject.getString(ManifestEntity.JSON_KEY_RELEASE_NOTE);
                         String downloadUrl = jsonObject.getString(ManifestEntity.JSON_KEY_DOWNLOAD_URL);
 
                         manifest = new ManifestEntity();
                         manifest.setRequired_versions(reqVersions);
                         manifest.setOptional_versions(opVersions);
+                        manifest.setLatest_version(latestVersion);
                         manifest.setRelease_note(note);
                         manifest.setDownload_url(downloadUrl);
                     }
