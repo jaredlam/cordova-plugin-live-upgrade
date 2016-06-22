@@ -32,6 +32,8 @@ public class Downloader {
     private static boolean mIsRequired;
     private static ManifestEntity mManifestEntity;
 
+    private static RestartListener mRestartListener;
+
     public static void init(Context context) {
         mIsRequired = false;
         mManifestEntity = null;
@@ -61,6 +63,10 @@ public class Downloader {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
                                                     Updater.saveVersion(context, mNewVersion);
+                                                    if (mRestartListener != null) {
+                                                        mRestartListener.onRestart();
+                                                        mRestartListener = null;
+                                                    }
                                                 }
                                             });
 
@@ -72,6 +78,10 @@ public class Downloader {
                                                     @Override
                                                     public void onClick(DialogInterface dialog, int which) {
                                                         Updater.saveVersion(context, mNewVersion);
+                                                        if (mRestartListener != null) {
+                                                            mRestartListener.onRestart();
+                                                            mRestartListener = null;
+                                                        }
                                                     }
                                                 }).show();
                                     }
@@ -258,6 +268,14 @@ public class Downloader {
         }
 
         return destFile;
+    }
+
+    public static void setRestartListener(RestartListener restartListener) {
+        mRestartListener = restartListener;
+    }
+
+    public interface RestartListener {
+        void onRestart();
     }
 
 }

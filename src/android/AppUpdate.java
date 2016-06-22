@@ -19,28 +19,45 @@ public class AppUpdate extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         mWebView = webView;
-
-        Updater.init(this.cordova.getActivity());
-        Downloader.init(this.cordova.getActivity());
     }
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         if ("Update".equals(action)) {
-            return execUpdate(callbackContext);
+            return execUpdate(args, callbackContext);
         }
         return super.execute(action, args, callbackContext);
     }
 
-    public boolean execUpdate(CallbackContext callbackContext) {
+    public boolean execUpdate(CordovaArgs args, CallbackContext callbackContext) {
 
+        try {
+            String localVersion = args.getString(0);
+            String manifestUrl = args.getString(1);
+
+            Updater.init(this.cordova.getActivity(), localVersion);
+            Downloader.init(this.cordova.getActivity());
+
+            redirectTo();
+
+            Downloader.downloadManifest(this.cordova.getActivity(), manifestUrl);
+            Downloader.setRestartListener(new Downloader.RestartListener() {
+                @Override
+                public void onRestart() {
+                    redirectTo();
+                }
+            });
+            callbackContext.success();
+        } catch (JSONException e) {
+            callbackContext.error("Cannot get local version or manifest url.");
+        }
+        return true;
+    }
+
+    public void redirectTo() {
         String url = Updater.getLaunchUrl(this.cordova.getActivity());
         if (!TextUtils.isEmpty(url)) {
             this.mWebView.loadUrlIntoView(url, false);
         }
-
-        Downloader.downloadManifest(this.cordova.getActivity(), "http://172.16.0.246:8082/upgrade_manifest.json");
-        callbackContext.success();
-        return true;
     }
 }

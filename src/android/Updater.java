@@ -25,12 +25,9 @@ public class Updater {
     private static Uri sVersionRootUri;
     private static String mDefaultVersion;
 
-    public static void init(Activity activity) {
+    public static void init(Activity activity, String localVersion) {
 
-        ConfigXmlParser parser = new ConfigXmlParser();
-        parser.parse(activity);
-        CordovaPreferences preferences = parser.getPreferences();
-        mDefaultVersion = preferences.getString("app-update-version", "1.0");
+        mDefaultVersion = localVersion;
 
         String version = getVersion(activity);
 
