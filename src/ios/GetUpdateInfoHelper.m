@@ -123,7 +123,12 @@
 
 
 - (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url{
-    
+    NSLog(@"KK---------start=======");
+    if ([FileHelper startFromLocal]) {
+        [self updateVersionSuccess];
+        
+        NSLog(@"KK---------从备份启动=======");
+    }
     
     self.currentVersion = nil;
     self.updateModel = nil;
@@ -215,6 +220,9 @@
 
 - (void)updateVersionSuccess{
     MainViewController *viewController = [[MainViewController alloc] init];
+    viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+    viewController.startPage =  @"index.html";
+    
     AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
     appDelegate.viewController = viewController;
     appDelegate.window.rootViewController = viewController;
