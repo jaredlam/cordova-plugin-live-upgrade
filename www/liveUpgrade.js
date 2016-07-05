@@ -1,7 +1,7 @@
 var exec = require('cordova/exec');
 
 module.exports = {
-    sync: function (localVersion, manifestUrl, onSuccess, onError) {
-        exec(onSuccess, onError, "AppUpdate", "Update", [localVersion, manifestUrl]);
+ 	Update: function(message, completeCallback, title, buttonLabel) {
+               exec(onSuccess, onError, "AppUpdate", "Update", [localVersion, manifestUrl]);
     }
 };
