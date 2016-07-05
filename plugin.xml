@@ -42,12 +42,15 @@
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
-            <feature name="UpdateVersion">
-                <param name="ios-package" value="UpdateVersion"/>
+            <feature name="AppUpdate">
+                <param name="ios-package" value="AppUpdate"/>
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
         
+        
+        <header-file src="src/ios/AppUpdate.h" />
+        <source-file src="src/ios/AppUpdate.m" />
         <header-file src="src/ios/FileHelper.h" />
         <source-file src="src/ios/FileHelper.m" />
         <header-file src="src/ios/GetUpdateInfoHelper.h" />
