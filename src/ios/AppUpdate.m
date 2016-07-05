@@ -14,7 +14,7 @@
 - (void)Update:(CDVInvokedUrlCommand*)command
 {
     NSString* version = [command.arguments objectAtIndex:0];
-    NSString* url = [command.arguments objectAtIndex:0];
+    NSString* url = [command.arguments objectAtIndex:1];
     
     [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version updateUrl:url];
     
