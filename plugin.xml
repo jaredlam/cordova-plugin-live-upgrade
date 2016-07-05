@@ -39,4 +39,37 @@
         <source-file src="src/android/Updater.java" target-dir="src/com/appupdate/update" />
         <source-file src="src/android/ManifestEntity.java" target-dir="src/com/appupdate/update" />
     </platform>
+    <!-- ios -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="UpdateVersion">
+                <param name="ios-package" value="UpdateVersion"/>
+                <param name="onload" value="true"/>
+            </feature>
+        </config-file>
+        
+        <header-file src="src/ios/FileHelper.h" />
+        <source-file src="src/ios/FileHelper.m" />
+        <header-file src="src/ios/GetUpdateInfoHelper.h" />
+        <source-file src="src/ios/GetUpdateInfoHelper.m" />
+        <header-file src="src/ios/NetworkObject.h" />
+        <source-file src="src/ios/NetworkObject.m" />
+        <header-file src="src/ios/Reachability.h" />
+        <source-file src="src/ios/Reachability.m" />
+        <header-file src="src/ios/zip/ZipArchive.h" />
+        <source-file src="src/ios/zip/ZipArchive.m" />
+        <header-file src="src/ios/zip/minizip/crypt.h" />
+        <header-file src="src/ios/zip/minizip/ioapi.h" />
+        <source-file src="src/ios/zip/minizip/ioapi.c" />
+        <header-file src="src/ios/zip/minizip/mztools.h" />
+        <source-file src="src/ios/zip/minizip/mztools.c" />
+        <header-file src="src/ios/zip/minizip/unzip.h" />
+        <source-file src="src/ios/zip/minizip/unzip.c" />
+        <header-file src="src/ios/zip/minizip/zip.h" />
+        <source-file src="src/ios/zip/minizip/zip.c" />
+        
+        <framework src="libz.tbd" />
+    </platform>
+
+    
 </plugin>
