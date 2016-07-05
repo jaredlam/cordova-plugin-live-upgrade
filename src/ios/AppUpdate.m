@@ -13,8 +13,10 @@
 
 - (void)Update:(CDVInvokedUrlCommand*)command
 {
+    NSString* version = [command.arguments objectAtIndex:0];
+    NSString* url = [command.arguments objectAtIndex:0];
     
-    [[GetUpdateInfoHelper shareInstance] getUpdateInfo];
+    [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version updateUrl:url];
     
 }
 

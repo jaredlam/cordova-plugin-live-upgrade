@@ -10,9 +10,11 @@
 #import "GetUpdateInfoHelper.h"
 #import "FileHelper.h"
 #import "NetworkObject.h"
+#import "MainViewController.h"
+#import "AppDelegate.h"
 
 
-#define kUpdateUrl @"http://172.16.0.246:8092/upgrade_manifest.json"
+//#define kUpdateUrl @"http://172.16.0.246:8092/upgrade_manifest.json"
 #define kCurrentVersion @"kCurrentVersion"
 
 @implementation UpdateModel
@@ -120,7 +122,7 @@
 }
 
 
-- (void)getUpdateInfo {
+- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url{
     
     
     self.currentVersion = nil;
@@ -129,7 +131,7 @@
     __weak __typeof(self)weakSelf = self;
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:kUpdateUrl]];
+        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:url]];
         
         if (data) {
             NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
@@ -137,7 +139,7 @@
             __block UpdateModel *model = [self versionDicToModel:dic];
             self.updateModel = model;
             
-            NSString *currentVersion = [self getCurrentVersionNum];
+            NSString *currentVersion = [self getCurrentVersionNum]?[self getCurrentVersionNum]:curentVersion;
             if (![currentVersion isEqualToString:model.latest_version]) {//和服务器上最新版本不一致
                 
                 self.currentVersion = model.latest_version;
@@ -211,14 +213,23 @@
     [downloadTask resume];
 }
 
+- (void)updateVersionSuccess{
+    MainViewController *viewController = [[MainViewController alloc] init];
+    AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+    appDelegate.viewController = viewController;
+    appDelegate.window.rootViewController = viewController;
+    [appDelegate.window makeKeyAndVisible];
+    
+}
+
 
 - (void)updateLocalVersion{
     
     [FileHelper moveTemperVersionToRealPath];
     [[NSUserDefaults standardUserDefaults] setObject:self.currentVersion forKey:kCurrentVersion];
     [[NSUserDefaults standardUserDefaults] synchronize];
-
-    [[NSNotificationCenter defaultCenter] postNotificationName:kUpdateNotification object:nil];
+    [self updateVersionSuccess];
+   // [[NSNotificationCenter defaultCenter] postNotificationName:kUpdateNotification object:nil];
     
     self.currentVersion = nil;
     self.updateModel = nil;

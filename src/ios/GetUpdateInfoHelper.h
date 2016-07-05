@@ -27,7 +27,7 @@
 
 + (GetUpdateInfoHelper*)shareInstance;
 
-- (void)getUpdateInfo;
+- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url;
 
 
 @end
