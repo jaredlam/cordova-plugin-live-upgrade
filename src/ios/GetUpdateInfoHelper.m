@@ -15,7 +15,7 @@
 
 
 //#define kUpdateUrl @"http://172.16.0.246:8092/upgrade_manifest.json"
-#define kCurrentVersion @"kCurrentVersion"
+#define kIngoreVersion @"kIngoreVersion"
 
 @implementation UpdateModel
 
@@ -24,7 +24,7 @@
 
 @interface GetUpdateInfoHelper ()
 
-@property (nonatomic, strong)NSString *currentVersion;
+
 @property (nonatomic, strong)UpdateModel *updateModel;
 @property (nonatomic, assign)BOOL bRequiredUpdate ;
 
@@ -44,14 +44,9 @@
 }
 
 
-- (NSString*)getCurrentVersionNum{
+- (NSArray*)getIgnoreVersions{
     
-    NSString *version = [[NSUserDefaults standardUserDefaults] objectForKey:kCurrentVersion];
-    if (!version) {
-        NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
-        NSString *nowVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-        return nowVersion;
-    }
+    NSArray *version = [[NSUserDefaults standardUserDefaults] objectForKey:kIngoreVersion];
     return version;
 }
 
@@ -123,14 +118,11 @@
 
 
 - (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url{
-    NSLog(@"KK---------start=======");
+    
     if ([FileHelper startFromLocal]) {
         [self updateVersionSuccess];
-        
-        NSLog(@"KK---------从备份启动=======");
     }
     
-    self.currentVersion = nil;
     self.updateModel = nil;
     self.bRequiredUpdate = NO;
     __weak __typeof(self)weakSelf = self;
@@ -144,35 +136,31 @@
             __block UpdateModel *model = [self versionDicToModel:dic];
             self.updateModel = model;
             
-            NSString *currentVersion = [self getCurrentVersionNum]?[self getCurrentVersionNum]:curentVersion;
-            if (![currentVersion isEqualToString:model.latest_version]) {//和服务器上最新版本不一致
+            if ([self getIgnoreVersions] && [[self getIgnoreVersions] containsObject:model.latest_version]) {
+                return ;
+            }
+            
+            if (![curentVersion isEqualToString:model.latest_version]) {//和服务器上最新版本不一致并且服务器版本号不在曾经被忽略的版本中
                 
-                self.currentVersion = model.latest_version;
-                
-                if([model.required_versions containsObject:currentVersion]||
-                   [model.optional_versions containsObject:currentVersion]){ // 如果在必升和选升版本中有当前版本号就检查本地已下载的包是否是最新的
+                if([model.required_versions containsObject:curentVersion]||
+                   [model.optional_versions containsObject:curentVersion]){ // 如果在必升和选升版本中有当前版本号就检查本地已下载的包是否是最新的
                     
-                    self.bRequiredUpdate = [model.required_versions containsObject:currentVersion];
+                    self.bRequiredUpdate = [model.required_versions containsObject:curentVersion];
                     
-                    if([FileHelper haveTempVersion]){//本地已经有更新包了
-                        [self showUpdateAlter:model required:_bRequiredUpdate];
+                    
+                    if([NetworkObject isWifiConnect]){//wifi
+                        [self downHtmlZip:self.updateModel.download_url
+                                   comple:^(BOOL bSuccess) {
+                                       if (bSuccess) {
+                                           [weakSelf showUpdateAlter:weakSelf.updateModel required:weakSelf.bRequiredUpdate];
+                                       }
+                                   }];
                     }
-                    else{// 本地还没有更新包
-                        
-                        if([NetworkObject isWifiConnect]){//wifi
-                            [self downHtmlZip:self.updateModel.download_url
-                                       comple:^(BOOL bSuccess) {
-                                           if (bSuccess) {
-                                              [weakSelf showUpdateAlter:weakSelf.updateModel required:weakSelf.bRequiredUpdate];
-                                           }
-                                       }];
-                        }
-                        else if ([NetworkObject isWWANConnect]){//2G,3G,4G...
-                            [self showUnWifiAlter:model
-                                         required:_bRequiredUpdate];
-                        }
-                        
+                    else if ([NetworkObject isWWANConnect]){//2G,3G,4G...
+                        [self showUnWifiAlter:model
+                                     required:_bRequiredUpdate];
                     }
+                    
                     
                 }
             }
@@ -234,16 +222,26 @@
 - (void)updateLocalVersion{
     
     [FileHelper moveTemperVersionToRealPath];
-    [[NSUserDefaults standardUserDefaults] setObject:self.currentVersion forKey:kCurrentVersion];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    [self updateVersionSuccess];
-   // [[NSNotificationCenter defaultCenter] postNotificationName:kUpdateNotification object:nil];
     
-    self.currentVersion = nil;
+    [self moveLastVersionToIngore];
+    [self updateVersionSuccess];
+    
     self.updateModel = nil;
     self.bRequiredUpdate = NO;
 }
 
+// 将最新的版本号加入被忽略版本号中
+- (void)moveLastVersionToIngore{
+    NSMutableArray *ignoreVersions =[NSMutableArray array];
+    if (![self getIgnoreVersions]) {
+        [ignoreVersions addObjectsFromArray:[self getIgnoreVersions]];
+    }
+    if (![ignoreVersions containsObject:_updateModel.latest_version]) {
+        [ignoreVersions addObject:_updateModel.latest_version];
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:ignoreVersions forKey:kIngoreVersion];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
     
@@ -252,17 +250,14 @@
     }
     else if(alertView.tag == 2 && buttonIndex == 1){// 更新
         [self updateLocalVersion];
-
+        
     }
     else if(alertView.tag == 2 && buttonIndex == 0){// 不更新
         
         [[NSFileManager defaultManager] removeItemAtPath:[FileHelper getUnZipPath]
                                                    error:nil];
-        [FileHelper updateTempVersion:NO];
+        [self moveLastVersionToIngore];
         
-        [[NSUserDefaults standardUserDefaults] setObject:self.currentVersion forKey:kCurrentVersion];
-        [[NSUserDefaults standardUserDefaults] synchronize];
- 
     }
     else if(alertView.tag == 3 && buttonIndex == 0){// 下载
         [self starDownzip];

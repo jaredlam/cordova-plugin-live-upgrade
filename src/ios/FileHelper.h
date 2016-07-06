@@ -11,9 +11,6 @@
 
 @interface FileHelper : NSObject
 
-+ (BOOL)haveTempVersion;
-+ (void)updateTempVersion:(BOOL)bSuccess;
-
 + (NSString *)libPrefrePath;
 + (NSString *)libCachePath;
 

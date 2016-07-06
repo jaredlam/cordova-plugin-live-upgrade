@@ -12,7 +12,6 @@
 
 #define kUnZipDirectory @"zip"
 #define kUpdateDirectory @"www"
-#define kHaveTempUpdate @"kHaveTempUpdate"
 
 @implementation FileHelper
 
@@ -58,16 +57,6 @@
     return [fileManager fileExistsAtPath:filePath];
 }
 
-
-+ (BOOL)haveTempVersion {
-    
-    return [[NSUserDefaults standardUserDefaults] boolForKey:kHaveTempUpdate];
-}
-
-+ (void)updateTempVersion:(BOOL)bSuccess {
-    [[NSUserDefaults standardUserDefaults] setBool:bSuccess forKey:kHaveTempUpdate];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
 
 +(BOOL)unzip:(NSString*)zipPath tounZipPath:(NSString*)unzipPath{
     
@@ -125,7 +114,6 @@
         
         [manager removeItemAtPath:[self getUnZipPath]
                             error:nil];
-        [self updateTempVersion:NO];
     }
 
 }
