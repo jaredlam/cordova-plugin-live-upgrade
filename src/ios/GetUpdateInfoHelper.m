@@ -119,13 +119,17 @@
 
 - (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url{
     
-    if ([FileHelper startFromLocal]) {
-        [self updateVersionSuccess];
+    if ([FileHelper startFromLocal]) {// 从本地文件夹启动
+    
+            [self updateVersionSuccess];
+
+     
     }
     
     self.updateModel = nil;
     self.bRequiredUpdate = NO;
     __weak __typeof(self)weakSelf = self;
+    
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:url]];
@@ -149,6 +153,7 @@
                     
                     
                     if([NetworkObject isWifiConnect]){//wifi
+                        
                         [self downHtmlZip:self.updateModel.download_url
                                    comple:^(BOOL bSuccess) {
                                        if (bSuccess) {
@@ -178,7 +183,6 @@
                comple:^(BOOL bSuccess) {
                    if (bSuccess) {
                        [weakSelf updateLocalVersion];
-                       //[weakSelf showUpdateAlter:weakSelf.updateModel required:weakSelf.bRequiredUpdate];
                    }
                }];
 }
@@ -207,14 +211,28 @@
 }
 
 - (void)updateVersionSuccess{
-    MainViewController *viewController = [[MainViewController alloc] init];
-    viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
-    viewController.startPage =  @"index.html";
     
     AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
-    appDelegate.viewController = viewController;
-    appDelegate.window.rootViewController = viewController;
-    [appDelegate.window makeKeyAndVisible];
+    
+    MainViewController *viewController = (MainViewController*)appDelegate.viewController;
+    if (viewController) {
+        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+        viewController.startPage =  @"index.html";
+        NSURL *appURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", viewController.wwwFolderName, viewController.startPage]];
+        NSURLRequest* appReq = [NSURLRequest requestWithURL:appURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:20.0];
+        [viewController.webViewEngine loadRequest:appReq];
+        
+    }
+    else{
+        MainViewController *viewController = [[MainViewController alloc] init];
+        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+        viewController.startPage =  @"index.html";
+        
+        AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+        appDelegate.viewController = viewController;
+        appDelegate.window.rootViewController = viewController;
+        [appDelegate.window makeKeyAndVisible];
+    }
     
 }
 
