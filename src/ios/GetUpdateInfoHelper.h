@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #define  kUpdateNotification @"kUpdateNotification"
+typedef void (^CompleBlock)(BOOL bSuccess);
 
 @interface UpdateModel : NSObject
 
@@ -27,7 +28,10 @@
 
 + (GetUpdateInfoHelper*)shareInstance;
 
-- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url;
+- (void)getUpdateInfo:(NSString*)curentVersion
+            updateUrl:(NSString*)url
+  ignorCurrentVersion:(BOOL)ignorCurrentVersion
+               comple:(CompleBlock)blcok;
 
 
 @end

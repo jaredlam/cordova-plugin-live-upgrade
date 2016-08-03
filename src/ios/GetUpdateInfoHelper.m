@@ -17,6 +17,8 @@
 //#define kUpdateUrl @"http://172.16.0.246:8092/upgrade_manifest.json"
 #define kIngoreVersion @"kIngoreVersion"
 
+
+
 @implementation UpdateModel
 
 @end
@@ -24,7 +26,7 @@
 
 @interface GetUpdateInfoHelper ()
 
-
+@property (nonatomic, copy)CompleBlock compleBlock;
 @property (nonatomic, strong)UpdateModel *updateModel;
 @property (nonatomic, assign)BOOL bRequiredUpdate ;
 
@@ -117,14 +119,17 @@
 }
 
 
-- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url ignorCurrentVersion:(BOOL)ignorCurrentVersion{
+- (void)getUpdateInfo:(NSString*)curentVersion
+            updateUrl:(NSString*)url
+  ignorCurrentVersion:(BOOL)ignorCurrentVersion
+           comple:(CompleBlock)blcok{
+    
+    self.compleBlock = blcok;
     
     if ([FileHelper startFromLocal]) {// 从本地文件夹启动
-    
-            [self updateVersionSuccess];
-
-     
+        [self updateVersionSuccess];
     }
+    
     
     self.updateModel = nil;
     self.bRequiredUpdate = NO;
@@ -151,7 +156,6 @@
                     
                     self.bRequiredUpdate = [model.required_versions containsObject:curentVersion];
                     
-                    
                     if([NetworkObject isWifiConnect]){//wifi
                         
                         [self downHtmlZip:self.updateModel.download_url
@@ -159,6 +163,7 @@
                                        if (bSuccess) {
                                            [weakSelf showUpdateAlter:weakSelf.updateModel required:weakSelf.bRequiredUpdate];
                                        }
+                                   
                                    }];
                     }
                     else if ([NetworkObject isWWANConnect]){//2G,3G,4G...
@@ -169,8 +174,15 @@
                     
                 }
             }
+            if(weakSelf.compleBlock){
+                weakSelf.compleBlock(true);
+            }
             
-            
+        }
+        else{
+            if(weakSelf.compleBlock){
+                weakSelf.compleBlock(false);
+            }
         }
     });
 }

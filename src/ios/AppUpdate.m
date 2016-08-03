@@ -16,7 +16,18 @@
     NSString* version = [command.arguments objectAtIndex:0];
     NSString* url = [command.arguments objectAtIndex:1];
     BOOL ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
-    [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version updateUrl:url ignorCurrentVersion:ignorCurrentVersion];
+    id sucess;
+    id failed;
+    if(command.arguments.count>3){
+        sucess = [command.arguments objectAtIndex:3];
+    }
+    if(command.arguments.count>4){
+        failed = [command.arguments objectAtIndex:4];
+    }
+    
+    [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version
+                                             updateUrl:url
+                                   ignorCurrentVersion:ignorCurrentVersion];
     
 }
 
