@@ -14,6 +14,7 @@ import org.json.JSONException;
  */
 public class AppUpdate extends CordovaPlugin {
     private CordovaWebView mWebView;
+    private boolean mCheckedUpdate = false;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -34,19 +35,26 @@ public class AppUpdate extends CordovaPlugin {
         try {
             String localVersion = args.getString(0);
             String manifestUrl = args.getString(1);
-
+            boolean forceCheck = false;
+            if (!args.isNull(2)) {
+                forceCheck = args.getBoolean(2);
+            }
             Updater.init(this.cordova.getActivity(), localVersion);
-            Downloader.init(this.cordova.getActivity());
+            Downloader.init(this.cordova.getActivity(), forceCheck);
 
-            redirectTo();
+            if (!mCheckedUpdate) {
+                mCheckedUpdate = true;
 
-            Downloader.downloadManifest(this.cordova.getActivity(), manifestUrl);
-            Downloader.setRestartListener(new Downloader.RestartListener() {
-                @Override
-                public void onRestart() {
-                    redirectTo();
-                }
-            });
+                redirectTo();
+
+                Downloader.downloadManifest(this.cordova.getActivity(), manifestUrl);
+                Downloader.setUpdateListener(new Downloader.UpdateListener() {
+                    @Override
+                    public void onUpdated() {
+                        redirectTo();
+                    }
+                });
+            }
             callbackContext.success();
         } catch (JSONException e) {
             callbackContext.error("Cannot get local version or manifest url.");
@@ -55,9 +63,18 @@ public class AppUpdate extends CordovaPlugin {
     }
 
     public void redirectTo() {
-        String url = Updater.getLaunchUrl(this.cordova.getActivity());
-        if (!TextUtils.isEmpty(url)) {
-            this.mWebView.loadUrlIntoView(url, false);
-        }
+        final CordovaInterface cordova = this.cordova;
+        this.cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String url = Updater.getLaunchUrl(cordova.getActivity());
+                if (!TextUtils.isEmpty(url)) {
+                    mWebView.loadUrlIntoView(url, false);
+                }
+            }
+        });
+
     }
+
+
 }

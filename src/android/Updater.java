@@ -31,7 +31,7 @@ public class Updater {
 
         String version = getVersion(activity);
 
-        String rootPathStr = Environment.getExternalStorageDirectory() + "/LaborApp";
+        String rootPathStr = activity.getFilesDir() + "/LaborApp";
         sRootUri = Uri.fromFile(new File(rootPathStr));
         String wwwRootPathStr = rootPathStr + "/" + version;
         sVersionRootUri = Uri.fromFile(new File(wwwRootPathStr));

@@ -7,8 +7,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.preference.PreferenceManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -27,16 +32,22 @@ import java.util.List;
  */
 public class Downloader {
 
+    public static final String IGNORE_VERSION_KEY = "IGNORE_VERSION_KEY";
+
     private static long mCurrentDownloadID;
     private static String mNewVersion;
     private static boolean mIsRequired;
     private static ManifestEntity mManifestEntity;
 
-    private static RestartListener mRestartListener;
+    private static UpdateListener mUpdateListener;
 
-    public static void init(Context context) {
+    private static boolean mDialogShowed = false;
+    private static boolean mForceCheck;
+
+    public static void init(Context context, boolean forceCheck) {
         mIsRequired = false;
         mManifestEntity = null;
+        mForceCheck = forceCheck;
         IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
@@ -56,36 +67,12 @@ public class Downloader {
                             if (fileName.endsWith(".zip") && !TextUtils.isEmpty(mNewVersion)) {
                                 //new package
                                 decompressZip(fileUrl, mNewVersion);
-                                if (mManifestEntity != null) {
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mManifestEntity.getTitle())
-                                            .setMessage(mManifestEntity.getRelease_note())
-                                            .setNegativeButton(mManifestEntity.getConfirm_text(), new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    Updater.saveVersion(context, mNewVersion);
-                                                    if (mRestartListener != null) {
-                                                        mRestartListener.onRestart();
-                                                        mRestartListener = null;
-                                                    }
-                                                }
-                                            });
-
-                                    if (mIsRequired) {
-                                        builder.setCancelable(false).show();
-                                    } else {
-                                        builder.setCancelable(true)
-                                                .setNegativeButton(mManifestEntity.getCancel_text(), new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        Updater.saveVersion(context, mNewVersion);
-                                                        if (mRestartListener != null) {
-                                                            mRestartListener.onRestart();
-                                                            mRestartListener = null;
-                                                        }
-                                                    }
-                                                }).show();
-                                    }
+                                if (mDialogShowed) {
+                                    didUpdated(context);
+                                } else {
+                                    showDialog(context, true);
                                 }
+                                mDialogShowed = false;
                             } else if (fileName.endsWith(".json")) {
                                 //upgrade config file
                                 checkUpdate(context, fileUrl);
@@ -103,19 +90,31 @@ public class Downloader {
     private static void checkUpdate(Context context, String fileUrl) {
         mManifestEntity = getManifestEntity(fileUrl);
         if (mManifestEntity != null) {
-            String localVersion = Updater.getVersion(context);
-            boolean isOptional = isOptional(mManifestEntity, localVersion);
-            boolean isRequired = isRequired(mManifestEntity, localVersion);
+            boolean isIgnore = isIgnore(context, mManifestEntity);
+            if(!isIgnore) {
+                String localVersion = Updater.getVersion(context);
+                boolean isOptional = isOptional(mManifestEntity, localVersion);
+                boolean isRequired = isRequired(mManifestEntity, localVersion);
 
-            mIsRequired = isRequired;
-            if (isOptional || isRequired) {
-                Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
+                mIsRequired = isRequired;
+                if (isOptional || isRequired) {
+                    if (isWifi(context)) {
+                        //WIFI is available, just start downloading then show alert dialog to user
+                        Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
+                    } else {
+                        //WIFI is down, so show alert dialog to user to making them decide whether downloading new package.
+                        showDialog(context, false);
+                    }
+                } else {
+                    Log.i(Updater.TAG, "There is no new version.");
+                }
             }
-
-
-        } else {
-            Log.e(Updater.TAG, "manifest entity deserialization failed.");
         }
+    }
+
+    private static boolean isIgnore(Context context, ManifestEntity manifestEntity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return !mForceCheck && preferences.getString(IGNORE_VERSION_KEY, "").trim().equals(manifestEntity.getLatest_version().trim());
     }
 
     private static boolean isOptional(ManifestEntity manifestEntity, String localVersion) {
@@ -124,7 +123,7 @@ public class Downloader {
             List<String> optionalVersions = manifestEntity.getOptional_versions();
             if (optionalVersions != null) {
                 for (String optionalVersion : optionalVersions) {
-                    if (localVersion.equals(optionalVersion)) {
+                    if (localVersion.trim().equals(optionalVersion.trim())) {
                         isOptional = true;
                         break;
                     }
@@ -141,7 +140,7 @@ public class Downloader {
             List<String> requiredVersions = manifestEntity.getRequired_versions();
             if (requiredVersions != null) {
                 for (String requiredVersion : requiredVersions) {
-                    if (localVersion.equals(requiredVersion)) {
+                    if (localVersion.trim().equals(requiredVersion.trim())) {
                         isRequired = true;
                         break;
                     }
@@ -209,7 +208,7 @@ public class Downloader {
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         Uri uri = Uri.parse(url);
         DownloadManager.Request request = new DownloadManager.Request(uri);
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+        request.setTitle("更新包下载中");
         File destFile = new File(context.getExternalCacheDir() + "/" + uri.getLastPathSegment());
         boolean canDownload = true;
         if (destFile.exists()) {
@@ -229,7 +228,7 @@ public class Downloader {
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         Uri uri = Uri.parse(url);
         DownloadManager.Request request = new DownloadManager.Request(uri);
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
         File destFile = new File(context.getExternalCacheDir() + "/" + uri.getLastPathSegment());
         boolean canDownload = true;
         if (destFile.exists()) {
@@ -270,12 +269,75 @@ public class Downloader {
         return destFile;
     }
 
-    public static void setRestartListener(RestartListener restartListener) {
-        mRestartListener = restartListener;
+    private static void showDialog(final Context context, final boolean alreadyDownload) {
+        mDialogShowed = true;
+        if (mManifestEntity != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mManifestEntity.getTitle())
+                    .setMessage(mManifestEntity.getRelease_note())
+                    .setPositiveButton(mManifestEntity.getConfirm_text(), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (alreadyDownload) {
+                                didUpdated(context);
+                            } else {
+                                Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
+                            }
+                        }
+                    });
+
+            if (mIsRequired) {
+                builder.setCancelable(false).show();
+            } else {
+                builder.setCancelable(false)
+                        .setNegativeButton(mManifestEntity.getCancel_text(), new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                                preferences.edit().putString(IGNORE_VERSION_KEY, mManifestEntity.getLatest_version()).commit();
+                            }
+                        }).show();
+            }
+        }
     }
 
-    public interface RestartListener {
-        void onRestart();
+    private static void didUpdated(Context context) {
+        Updater.saveVersion(context, mNewVersion);
+        if (mUpdateListener != null) {
+            mUpdateListener.onUpdated();
+            mUpdateListener = null;
+        }
+    }
+
+    private static boolean isWifi(Context context) {
+        ConnectivityManager mConnectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        TelephonyManager mTelephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        // Skip if no connection, or background data disabled
+        NetworkInfo info = mConnectivity.getActiveNetworkInfo();
+        if (info == null || !mConnectivity.getBackgroundDataSetting()) {
+            return false;
+        }
+
+        // Only update if WiFi or 3G is connected and not roaming
+        int netType = info.getType();
+        int netSubtype = info.getSubtype();
+        if (netType == ConnectivityManager.TYPE_WIFI) {
+            return info.isConnected();
+        } else if (netType == ConnectivityManager.TYPE_MOBILE
+                && netSubtype == TelephonyManager.NETWORK_TYPE_UMTS
+                && !mTelephony.isNetworkRoaming()) {
+            return info.isConnected();
+        } else {
+            return false;
+        }
+    }
+
+    public static void setUpdateListener(UpdateListener updateListener) {
+        mUpdateListener = updateListener;
+    }
+
+    public interface UpdateListener {
+        void onUpdated();
     }
 
 }
