@@ -117,7 +117,7 @@
 }
 
 
-- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url{
+- (void)getUpdateInfo:(NSString*)curentVersion updateUrl:(NSString*)url ignorCurrentVersion:(BOOL)ignorCurrentVersion{
     
     if ([FileHelper startFromLocal]) {// 从本地文件夹启动
     
@@ -140,7 +140,7 @@
             __block UpdateModel *model = [self versionDicToModel:dic];
             self.updateModel = model;
             
-            if ([self getIgnoreVersions] && [[self getIgnoreVersions] containsObject:model.latest_version]) {
+            if (!ignorCurrentVersion && [self getIgnoreVersions] && [[self getIgnoreVersions] containsObject:model.latest_version]) {
                 return ;
             }
             

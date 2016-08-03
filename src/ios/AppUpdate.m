@@ -15,8 +15,8 @@
 {
     NSString* version = [command.arguments objectAtIndex:0];
     NSString* url = [command.arguments objectAtIndex:1];
-    
-    [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version updateUrl:url];
+    BOOL ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
+    [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version updateUrl:url ignorCurrentVersion:ignorCurrentVersion];
     
 }
 
