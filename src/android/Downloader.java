@@ -17,6 +17,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.apache.cordova.CallbackContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +35,8 @@ public class Downloader {
 
     public static final String IGNORE_VERSION_KEY = "IGNORE_VERSION_KEY";
 
+    private static CallbackContext mCallbackContext;
+
     private static long mCurrentDownloadID;
     private static String mNewVersion;
     private static boolean mIsRequired;
@@ -44,7 +47,8 @@ public class Downloader {
     private static boolean mDialogShowed = false;
     private static boolean mForceCheck;
 
-    public static void init(Context context, boolean forceCheck) {
+    public static void init(CallbackContext callbackContext, Context context, boolean forceCheck) {
+        mCallbackContext = callbackContext;
         mIsRequired = false;
         mManifestEntity = null;
         mForceCheck = forceCheck;
@@ -75,7 +79,15 @@ public class Downloader {
                                 mDialogShowed = false;
                             } else if (fileName.endsWith(".json")) {
                                 //upgrade config file
-                                checkUpdate(context, fileUrl);
+                                try {
+                                    checkUpdate(context, fileUrl);
+                                } catch (JSONException e) {
+                                    if (mCallbackContext != null) {
+                                        mCallbackContext.error("Parse manifest json error.");
+                                    }
+                                    Log.e(Updater.TAG, "Parse manifest json error.");
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
@@ -87,11 +99,11 @@ public class Downloader {
         context.registerReceiver(receiver, intentFilter);
     }
 
-    private static void checkUpdate(Context context, String fileUrl) {
+    private static void checkUpdate(Context context, String fileUrl) throws JSONException {
         mManifestEntity = getManifestEntity(fileUrl);
         if (mManifestEntity != null) {
             boolean isIgnore = isIgnore(context, mManifestEntity);
-            if(!isIgnore) {
+            if (!isIgnore) {
                 String localVersion = Updater.getVersion(context);
                 boolean isOptional = isOptional(mManifestEntity, localVersion);
                 boolean isRequired = isRequired(mManifestEntity, localVersion);
@@ -108,6 +120,10 @@ public class Downloader {
                 } else {
                     Log.i(Updater.TAG, "There is no new version.");
                 }
+            }
+
+            if (mCallbackContext != null) {
+                mCallbackContext.success();
             }
         }
     }
@@ -151,7 +167,7 @@ public class Downloader {
         return isRequired;
     }
 
-    private static ManifestEntity getManifestEntity(String fileUrl) {
+    private static ManifestEntity getManifestEntity(String fileUrl) throws JSONException {
 
         ManifestEntity manifest = null;
 
@@ -159,42 +175,38 @@ public class Downloader {
         if (jsonFileUri != null) {
             File jsonFile = new File(jsonFileUri.getPath());
             if (jsonFile.exists()) {
-                try {
-                    JSONObject jsonObject = FileUtils.readJsonFromFile(jsonFile);
-                    if (jsonObject != null) {
+
+                JSONObject jsonObject = FileUtils.readJsonFromFile(jsonFile);
+                if (jsonObject != null) {
 
 
-                        JSONArray reqVersionJsonArr = jsonObject.getJSONArray(ManifestEntity.JSON_KEY_REQUIRED_VERSIONS);
-                        List<String> reqVersions = new ArrayList<String>();
-                        for (int i = 0; i < reqVersionJsonArr.length(); i++) {
-                            reqVersions.add(reqVersionJsonArr.getString(i));
-                        }
-
-                        JSONArray opVersionJsonArr = jsonObject.getJSONArray(ManifestEntity.JSON_KEY_OPTIONAL_VERSIONS);
-                        List<String> opVersions = new ArrayList<String>();
-                        for (int i = 0; i < opVersionJsonArr.length(); i++) {
-                            opVersions.add(opVersionJsonArr.getString(i));
-                        }
-                        String latestVersion = jsonObject.getString(ManifestEntity.JSON_KEY_LATEST_VERSION);
-                        String note = jsonObject.getString(ManifestEntity.JSON_KEY_RELEASE_NOTE);
-                        String downloadUrl = jsonObject.getString(ManifestEntity.JSON_KEY_DOWNLOAD_URL);
-                        String title = jsonObject.getString(ManifestEntity.JSON_KEY_TITLE);
-                        String confirmTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CONFIRM_TEXT);
-                        String cancelTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CANCEL_TEXT);
-
-                        manifest = new ManifestEntity();
-                        manifest.setRequired_versions(reqVersions);
-                        manifest.setOptional_versions(opVersions);
-                        manifest.setLatest_version(latestVersion);
-                        manifest.setRelease_note(note);
-                        manifest.setDownload_url(downloadUrl);
-                        manifest.setTitle(title);
-                        manifest.setConfirm_text(confirmTxt);
-                        manifest.setCancel_text(cancelTxt);
+                    JSONArray reqVersionJsonArr = jsonObject.getJSONArray(ManifestEntity.JSON_KEY_REQUIRED_VERSIONS);
+                    List<String> reqVersions = new ArrayList<String>();
+                    for (int i = 0; i < reqVersionJsonArr.length(); i++) {
+                        reqVersions.add(reqVersionJsonArr.getString(i));
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(Updater.TAG, "Parse manifest json error.");
+
+                    JSONArray opVersionJsonArr = jsonObject.getJSONArray(ManifestEntity.JSON_KEY_OPTIONAL_VERSIONS);
+                    List<String> opVersions = new ArrayList<String>();
+                    for (int i = 0; i < opVersionJsonArr.length(); i++) {
+                        opVersions.add(opVersionJsonArr.getString(i));
+                    }
+                    String latestVersion = jsonObject.getString(ManifestEntity.JSON_KEY_LATEST_VERSION);
+                    String note = jsonObject.getString(ManifestEntity.JSON_KEY_RELEASE_NOTE);
+                    String downloadUrl = jsonObject.getString(ManifestEntity.JSON_KEY_DOWNLOAD_URL);
+                    String title = jsonObject.getString(ManifestEntity.JSON_KEY_TITLE);
+                    String confirmTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CONFIRM_TEXT);
+                    String cancelTxt = jsonObject.getString(ManifestEntity.JSON_KEY_CANCEL_TEXT);
+
+                    manifest = new ManifestEntity();
+                    manifest.setRequired_versions(reqVersions);
+                    manifest.setOptional_versions(opVersions);
+                    manifest.setLatest_version(latestVersion);
+                    manifest.setRelease_note(note);
+                    manifest.setDownload_url(downloadUrl);
+                    manifest.setTitle(title);
+                    manifest.setConfirm_text(confirmTxt);
+                    manifest.setCancel_text(cancelTxt);
                 }
             }
         }

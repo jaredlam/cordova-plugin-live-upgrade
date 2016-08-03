@@ -40,7 +40,7 @@ public class AppUpdate extends CordovaPlugin {
                 forceCheck = args.getBoolean(2);
             }
             Updater.init(this.cordova.getActivity(), localVersion);
-            Downloader.init(this.cordova.getActivity(), forceCheck);
+            Downloader.init(callbackContext, this.cordova.getActivity(), forceCheck);
 
             if (!mCheckedUpdate) {
                 mCheckedUpdate = true;
@@ -54,8 +54,9 @@ public class AppUpdate extends CordovaPlugin {
                         redirectTo();
                     }
                 });
+            }else {
+                callbackContext.success();
             }
-            callbackContext.success();
         } catch (JSONException e) {
             callbackContext.error("Cannot get local version or manifest url.");
         }
