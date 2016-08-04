@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #define  kUpdateNotification @"kUpdateNotification"
-typedef void (^CompleBlock)(BOOL bSuccess);
+typedef void (^CompleBlock)(BOOL bSuccess,NSString *message);
 
 @interface UpdateModel : NSObject
 

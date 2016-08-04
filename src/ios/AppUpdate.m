@@ -19,25 +19,25 @@
     __block NSString* callbackId = command.callbackId;
     
     BOOL ignorCurrentVersion = false;
- 
+    
     if(command.arguments.count>2 && ![[command.arguments objectAtIndex:2] isKindOfClass:[NSNull class]]){
         ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
     }
-
+    
     __weak __typeof(self)weakSelf = self;
     [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version
                                              updateUrl:url
                                    ignorCurrentVersion:ignorCurrentVersion
-                                                comple:^(BOOL bSuccess) {
+                                                comple:^(BOOL bSuccess,NSString *message) {
                                                     if (bSuccess) {
-                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
                                                         
                                                         [weakSelf.commandDelegate sendPluginResult:reuslt callbackId:callbackId];
                                                     }
                                                     else{
-                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-                    
-                                                         [weakSelf.commandDelegate sendPluginResult:reuslt callbackId:callbackId];
+                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:message];
+                                                        
+                                                        [weakSelf.commandDelegate sendPluginResult:reuslt callbackId:callbackId];
                                                     }
                                                 }];
     

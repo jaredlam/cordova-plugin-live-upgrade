@@ -122,7 +122,7 @@
 - (void)getUpdateInfo:(NSString*)curentVersion
             updateUrl:(NSString*)url
   ignorCurrentVersion:(BOOL)ignorCurrentVersion
-           comple:(CompleBlock)blcok{
+               comple:(CompleBlock)blcok{
     
     self.compleBlock = blcok;
     
@@ -168,7 +168,7 @@
                                        if (bSuccess) {
                                            [weakSelf showUpdateAlter:weakSelf.updateModel required:weakSelf.bRequiredUpdate];
                                        }
-                                   
+                                       
                                    }];
                     }
                     else if ([NetworkObject isWWANConnect]){//2G,3G,4G...
@@ -178,15 +178,19 @@
                     
                     
                 }
+                if(weakSelf.compleBlock){
+                    weakSelf.compleBlock(true,@"下载完成");
+                }
             }
-            if(weakSelf.compleBlock){
-                weakSelf.compleBlock(true);
+            else{
+                if(weakSelf.compleBlock){
+                    weakSelf.compleBlock(true,@"已经是最新版本");
+                }
             }
-            
         }
         else{
             if(weakSelf.compleBlock){
-                weakSelf.compleBlock(false);
+                weakSelf.compleBlock(false,@"下载失败");
             }
         }
     });
