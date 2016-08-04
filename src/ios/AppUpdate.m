@@ -20,7 +20,7 @@
     
     BOOL ignorCurrentVersion = false;
  
-    if(command.arguments.count>2){
+    if(command.arguments.count>2 && ![[command.arguments objectAtIndex:2] isKindOfClass:[NSNull class]]){
         ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
     }
 
