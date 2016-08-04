@@ -130,6 +130,11 @@
         [self updateVersionSuccess];
     }
     
+    if(ignorCurrentVersion){
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:kIngoreVersion];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+    
     
     self.updateModel = nil;
     self.bRequiredUpdate = NO;
@@ -145,7 +150,7 @@
             __block UpdateModel *model = [self versionDicToModel:dic];
             self.updateModel = model;
             
-            if (!ignorCurrentVersion && [self getIgnoreVersions] && [[self getIgnoreVersions] containsObject:model.latest_version]) {
+            if ([self getIgnoreVersions] && [[self getIgnoreVersions] containsObject:model.latest_version]) {
                 return ;
             }
             

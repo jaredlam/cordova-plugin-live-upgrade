@@ -15,25 +15,29 @@
 {
     NSString* version = [command.arguments objectAtIndex:0];
     NSString* url = [command.arguments objectAtIndex:1];
-    BOOL ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
-    id sucess;
-    id failed;
-    if(command.arguments.count>3){
-        sucess = [command.arguments objectAtIndex:3];
-    }
-    if(command.arguments.count>4){
-        failed = [command.arguments objectAtIndex:4];
-    }
     
+    __block NSString* callbackId = command.callbackId;
+    
+    BOOL ignorCurrentVersion = false;
+ 
+    if(command.arguments.count>2){
+        ignorCurrentVersion = [[command.arguments objectAtIndex:2] boolValue];
+    }
+
+    __weak __typeof(self)weakSelf = self;
     [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version
                                              updateUrl:url
                                    ignorCurrentVersion:ignorCurrentVersion
                                                 comple:^(BOOL bSuccess) {
                                                     if (bSuccess) {
+                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
                                                         
+                                                        [weakSelf.commandDelegate sendPluginResult:reuslt callbackId:callbackId];
                                                     }
                                                     else{
-                                                        
+                                                        CDVPluginResult *reuslt = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+                    
+                                                         [weakSelf.commandDelegate sendPluginResult:reuslt callbackId:callbackId];
                                                     }
                                                 }];
     
