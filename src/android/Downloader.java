@@ -69,14 +69,7 @@ public class Downloader {
                         String fileName = download.getString(nameIndex);
                         if (!TextUtils.isEmpty(fileName)) {
                             if (fileName.endsWith(".zip") && !TextUtils.isEmpty(mNewVersion)) {
-                                //new package
-                                decompressZip(fileUrl, mNewVersion);
-                                if (mDialogShowed) {
-                                    didUpdated(context);
-                                } else {
-                                    showDialog(context, true);
-                                }
-                                mDialogShowed = false;
+                                dealWithZip(context, fileUrl);
                             } else if (fileName.endsWith(".json")) {
                                 //upgrade config file
                                 try {
@@ -97,6 +90,17 @@ public class Downloader {
             }
         };
         context.registerReceiver(receiver, intentFilter);
+    }
+
+    private static void dealWithZip(Context context, String fileUrl) {
+        //new package
+        decompressZip(fileUrl, mNewVersion);
+        if (mDialogShowed) {
+            didUpdated(context);
+        } else {
+            showDialog(context, true);
+        }
+        mDialogShowed = false;
     }
 
     private static void checkUpdate(Context context, String fileUrl) throws JSONException {
@@ -222,16 +226,11 @@ public class Downloader {
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setTitle("更新包下载中");
         File destFile = new File(context.getExternalCacheDir() + "/" + uri.getLastPathSegment());
-        boolean canDownload = true;
         if (destFile.exists()) {
-            canDownload = destFile.delete();
-        }
-
-        if (canDownload) {
+            dealWithZip(context, Uri.fromFile(destFile).toString());
+        } else {
             request.setDestinationUri(Uri.fromFile(destFile));
             mCurrentDownloadID = downloadManager.enqueue(request);
-        } else {
-            Log.e(Updater.TAG, "Download package file is exist but can not be removed.");
         }
     }
 

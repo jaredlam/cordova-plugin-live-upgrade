@@ -42,7 +42,7 @@ public class AppUpdate extends CordovaPlugin {
             Updater.init(this.cordova.getActivity(), localVersion);
             Downloader.init(callbackContext, this.cordova.getActivity(), forceCheck);
 
-            if (!mCheckedUpdate) {
+            if (!mCheckedUpdate || !forceCheck) {
                 mCheckedUpdate = true;
 
                 redirectTo();
