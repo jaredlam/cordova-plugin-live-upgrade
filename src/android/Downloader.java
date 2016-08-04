@@ -76,7 +76,7 @@ public class Downloader {
                                     checkUpdate(context, fileUrl);
                                 } catch (JSONException e) {
                                     if (mCallbackContext != null) {
-                                        mCallbackContext.error("Parse manifest json error.");
+                                        mCallbackContext.error("解析升级文件错误");
                                     }
                                     Log.e(Updater.TAG, "Parse manifest json error.");
                                     e.printStackTrace();
@@ -123,6 +123,8 @@ public class Downloader {
                     }
                 } else {
                     Log.i(Updater.TAG, "There is no new version.");
+                    mCallbackContext.success("当前已经是最新版本");
+                    return;
                 }
             }
 
@@ -250,6 +252,7 @@ public class Downloader {
             request.setDestinationUri(Uri.fromFile(destFile));
             mCurrentDownloadID = downloadManager.enqueue(request);
         } else {
+            mCallbackContext.error("升级文件已存在，并删除失败");
             Log.e(Updater.TAG, "Download manifest file is exist but can not be removed.");
         }
     }
@@ -264,6 +267,7 @@ public class Downloader {
             Decompressor.unzip(file, destFile);
         } catch (IOException e) {
             e.printStackTrace();
+            mCallbackContext.error("文件解压失败");
             Log.e(Updater.TAG, "decompressed IOException");
         }
 
@@ -274,6 +278,7 @@ public class Downloader {
             FileUtils.deleteRecursive(unzippedFile);
         } catch (IOException e) {
             e.printStackTrace();
+            mCallbackContext.error("拷贝解压文件目录失败");
             Log.e(Updater.TAG, "copy directory IOException");
         }
 
