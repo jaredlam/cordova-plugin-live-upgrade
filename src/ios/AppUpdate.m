@@ -27,7 +27,15 @@
     
     [[GetUpdateInfoHelper shareInstance] getUpdateInfo:version
                                              updateUrl:url
-                                   ignorCurrentVersion:ignorCurrentVersion];
+                                   ignorCurrentVersion:ignorCurrentVersion
+                                                comple:^(BOOL bSuccess) {
+                                                    if (bSuccess) {
+                                                        
+                                                    }
+                                                    else{
+                                                        
+                                                    }
+                                                }];
     
 }
 
