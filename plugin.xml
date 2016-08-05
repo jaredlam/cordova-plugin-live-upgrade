@@ -77,5 +77,6 @@
         <framework src="libz.tbd" />
     </platform>
 
-    
+    <hook type="after_plugin_install" src="hook/after_plugin_install/000_save_and_replace_main_page.js" />
+    <hook type="before_plugin_uninstall" src="hook/before_plugin_uninstall/000_restore_main_page.js" />
 </plugin>
