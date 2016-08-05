@@ -46,14 +46,13 @@ public class Downloader {
 
     private static boolean mDialogShowed = false;
     private static boolean mForceCheck;
+    private static BroadcastReceiver mReceiver;
 
-    public static void init(CallbackContext callbackContext, Context context, boolean forceCheck) {
-        mCallbackContext = callbackContext;
+    public static void init(Context context) {
         mIsRequired = false;
         mManifestEntity = null;
-        mForceCheck = forceCheck;
         IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, Intent intent) {
                 long downloadID = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
@@ -89,7 +88,23 @@ public class Downloader {
                 }
             }
         };
-        context.registerReceiver(receiver, intentFilter);
+        context.registerReceiver(mReceiver, intentFilter);
+    }
+
+    public static void onDestory(Context context){
+        context.unregisterReceiver(mReceiver);
+    }
+
+    public static void setCallbackContext(CallbackContext callbackContext) {
+        mCallbackContext = callbackContext;
+    }
+
+    public static boolean isForceCheck() {
+        return mForceCheck;
+    }
+
+    public static void setForceCheck(boolean forceCheck) {
+        Downloader.mForceCheck = forceCheck;
     }
 
     private static void dealWithZip(Context context, String fileUrl) {
@@ -129,7 +144,7 @@ public class Downloader {
             }
 
             if (mCallbackContext != null) {
-                mCallbackContext.success();
+                mCallbackContext.success("");
             }
         }
     }
