@@ -20,6 +20,7 @@ public class AppUpdate extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         mWebView = webView;
+        Downloader.init(this.cordova.getActivity());
     }
 
     @Override
@@ -40,7 +41,8 @@ public class AppUpdate extends CordovaPlugin {
                 forceCheck = args.getBoolean(2);
             }
             Updater.init(this.cordova.getActivity(), localVersion);
-            Downloader.init(callbackContext, this.cordova.getActivity(), forceCheck);
+            Downloader.setForceCheck(forceCheck);
+            Downloader.setCallbackContext(callbackContext);
 
             if (!mCheckedUpdate || forceCheck) {
                 mCheckedUpdate = true;
@@ -50,6 +52,7 @@ public class AppUpdate extends CordovaPlugin {
                 }
 
                 Downloader.downloadManifest(this.cordova.getActivity(), manifestUrl);
+                Downloader.setCallbackContext(callbackContext);
                 Downloader.setUpdateListener(new Downloader.UpdateListener() {
                     @Override
                     public void onUpdated() {
@@ -57,7 +60,7 @@ public class AppUpdate extends CordovaPlugin {
                     }
                 });
             }else {
-                callbackContext.success();
+                callbackContext.success("");
             }
         } catch (JSONException e) {
             callbackContext.error("升级插件获取参数不正确");
@@ -76,8 +79,11 @@ public class AppUpdate extends CordovaPlugin {
                 }
             }
         });
-
     }
 
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Downloader.onDestory(this.cordova.getActivity());
+    }
 }
