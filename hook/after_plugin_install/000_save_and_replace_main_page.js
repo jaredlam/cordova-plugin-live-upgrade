@@ -1,1 +1,0 @@
-console.log("cordova-plugin-live-upgrade is installed");
