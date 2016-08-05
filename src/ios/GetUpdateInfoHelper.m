@@ -126,9 +126,9 @@
     
     self.compleBlock = blcok;
     
-    if ([FileHelper startFromLocal]) {// 从本地文件夹启动
-        [self updateVersionSuccess];
-    }
+//    if ([FileHelper startFromLocal]) {// 从本地文件夹启动
+//        [self updateVersionSuccess];
+//    }
     
     if(ignorCurrentVersion){
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:kIngoreVersion];
