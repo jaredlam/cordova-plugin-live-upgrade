@@ -1,6 +1,10 @@
 package com.appupdate.update;
 
-import android.text.TextUtils;
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
@@ -24,9 +28,15 @@ public class AppUpdate extends CordovaPlugin {
     }
 
     @Override
-    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
+    public boolean execute(String action, final CordovaArgs args, final CallbackContext callbackContext) throws JSONException {
         if ("Update".equals(action)) {
-            return execUpdate(args, callbackContext);
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    execUpdate(args, callbackContext);
+                }
+            });
+            return true;
         }
         return super.execute(action, args, callbackContext);
     }
@@ -40,16 +50,13 @@ public class AppUpdate extends CordovaPlugin {
             if (!args.isNull(2)) {
                 forceCheck = args.getBoolean(2);
             }
-            Updater.init(this.cordova.getActivity(), localVersion);
+
+            Updater.setDefaultVersion(localVersion);
             Downloader.setForceCheck(forceCheck);
             Downloader.setCallbackContext(callbackContext);
 
             if (!mCheckedUpdate || forceCheck) {
                 mCheckedUpdate = true;
-
-                if(!forceCheck) {
-                    redirectTo();
-                }
 
                 Downloader.downloadManifest(this.cordova.getActivity(), manifestUrl);
                 Downloader.setCallbackContext(callbackContext);
@@ -59,7 +66,7 @@ public class AppUpdate extends CordovaPlugin {
                         redirectTo();
                     }
                 });
-            }else {
+            } else {
                 callbackContext.success("");
             }
         } catch (JSONException e) {
@@ -73,10 +80,11 @@ public class AppUpdate extends CordovaPlugin {
         this.cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                String url = Updater.getLaunchUrl(cordova.getActivity());
-                if (!TextUtils.isEmpty(url)) {
-                    mWebView.loadUrlIntoView(url, false);
-                }
+                Activity activity = cordova.getActivity();
+                PendingIntent RESTART_INTENT = PendingIntent.getActivity(activity, 0, new Intent(activity.getIntent()), activity.getIntent().getFlags());
+                AlarmManager mgr = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
+                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, RESTART_INTENT);
+                System.exit(2);
             }
         });
     }

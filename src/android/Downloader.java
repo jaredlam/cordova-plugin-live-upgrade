@@ -12,12 +12,15 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -91,7 +94,7 @@ public class Downloader {
         context.registerReceiver(mReceiver, intentFilter);
     }
 
-    public static void onDestory(Context context){
+    public static void onDestory(Context context) {
         context.unregisterReceiver(mReceiver);
     }
 
@@ -303,32 +306,38 @@ public class Downloader {
     private static void showDialog(final Context context, final boolean alreadyDownload) {
         mDialogShowed = true;
         if (mManifestEntity != null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mManifestEntity.getTitle())
-                    .setMessage(mManifestEntity.getRelease_note())
-                    .setPositiveButton(mManifestEntity.getConfirm_text(), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (alreadyDownload) {
-                                didUpdated(context);
-                            } else {
-                                Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
-                            }
-                        }
-                    });
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(mManifestEntity.getTitle())
+                            .setMessage(mManifestEntity.getRelease_note())
+                            .setPositiveButton(mManifestEntity.getConfirm_text(), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (alreadyDownload) {
+                                        didUpdated(context);
+                                    } else {
+                                        Downloader.downloadPackage(context, mManifestEntity.getDownload_url(), mManifestEntity.getLatest_version());
+                                    }
+                                }
+                            });
 
-            if (mIsRequired) {
-                builder.setCancelable(false).show();
-            } else {
-                builder.setCancelable(false)
-                        .setNegativeButton(mManifestEntity.getCancel_text(), new DialogInterface.OnClickListener() {
+                    if (mIsRequired) {
+                        builder.setCancelable(false).show();
+                    } else {
+                        builder.setCancelable(false)
+                                .setNegativeButton(mManifestEntity.getCancel_text(), new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                                preferences.edit().putString(IGNORE_VERSION_KEY, mManifestEntity.getLatest_version()).commit();
-                            }
-                        }).show();
-            }
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                                        preferences.edit().putString(IGNORE_VERSION_KEY, mManifestEntity.getLatest_version()).commit();
+                                    }
+                                }).show();
+                    }
+                }
+            });
         }
     }
 

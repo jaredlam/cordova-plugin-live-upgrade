@@ -25,10 +25,7 @@ public class Updater {
     private static Uri sVersionRootUri;
     private static String mDefaultVersion;
 
-    public static void init(Activity activity, String localVersion) {
-
-        mDefaultVersion = localVersion;
-
+    public static void init(Activity activity){
         String version = getVersion(activity);
 
         String rootPathStr = activity.getFilesDir() + "/LaborApp";
@@ -45,7 +42,10 @@ public class Updater {
         } else {
             Log.i(TAG, "Folder already exist.");
         }
+    }
 
+    public static void setDefaultVersion(String localVersion) {
+        mDefaultVersion = localVersion;
     }
 
     public static String getLaunchUrl(Context context) {
