@@ -243,6 +243,12 @@
         NSURLRequest* appReq = [NSURLRequest requestWithURL:appURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:20.0];
         [viewController.webViewEngine loadRequest:appReq];
         
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+                                                        message:@"升级完成"
+                                                       delegate:nil
+                                              cancelButtonTitle:@"确定"
+                                              otherButtonTitles:nil ];
+        [alert show];
     }
     else{
         MainViewController *viewController = [[MainViewController alloc] init];
