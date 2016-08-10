@@ -179,7 +179,7 @@
                     
                 }
                 if(weakSelf.compleBlock){
-                    weakSelf.compleBlock(true,@"下载完成");
+                    weakSelf.compleBlock(true,nil);
                 }
             }
             else{
