@@ -126,9 +126,7 @@
     
     self.compleBlock = blcok;
     
-//    if ([FileHelper startFromLocal]) {// 从本地文件夹启动
-//        [self updateVersionSuccess];
-//    }
+    
     
     if(ignorCurrentVersion){
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:kIngoreVersion];
@@ -235,31 +233,33 @@
     
     AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
     
-    MainViewController *viewController = (MainViewController*)appDelegate.viewController;
-    if (viewController) {
-        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
-        viewController.startPage =  @"index.html";
-        NSURL *appURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", viewController.wwwFolderName, viewController.startPage]];
-        NSURLRequest* appReq = [NSURLRequest requestWithURL:appURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:20.0];
-        [viewController.webViewEngine loadRequest:appReq];
-        
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
-                                                        message:@"升级完成"
-                                                       delegate:nil
-                                              cancelButtonTitle:@"确定"
-                                              otherButtonTitles:nil ];
-        [alert show];
-    }
-    else{
-        MainViewController *viewController = [[MainViewController alloc] init];
-        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
-        viewController.startPage =  @"index.html";
-        
-        AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
-        appDelegate.viewController = viewController;
-        appDelegate.window.rootViewController = viewController;
-        [appDelegate.window makeKeyAndVisible];
-    }
+    //  MainViewController *viewController = (MainViewController*)appDelegate.viewController;
+    //    if (viewController) {
+    //        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+    //        viewController.startPage =  @"index.html";
+    //        NSURL *appURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", viewController.wwwFolderName, viewController.startPage]];
+    //        NSURLRequest* appReq = [NSURLRequest requestWithURL:appURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:20.0];
+    //        [viewController.webViewEngine loadRequest:appReq];
+    //
+    //
+    //        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+    //                                                        message:@"升级完成"
+    //                                                       delegate:nil
+    //                                              cancelButtonTitle:@"确定"
+    //                                              otherButtonTitles:nil ];
+    //        [alert show];
+    //
+    //    }
+    //    else{
+    MainViewController *viewController = [[MainViewController alloc] init];
+    viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+    viewController.startPage =  @"index.html";
+    
+    // AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+    appDelegate.viewController = viewController;
+    appDelegate.window.rootViewController = viewController;
+    [appDelegate.window makeKeyAndVisible];
+    //  }
     
 }
 
