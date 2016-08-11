@@ -231,7 +231,6 @@
 
 - (void)updateVersionSuccess{
     
-    AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
     
     //  MainViewController *viewController = (MainViewController*)appDelegate.viewController;
     //    if (viewController) {
@@ -251,14 +250,25 @@
     //
     //    }
     //    else{
-    MainViewController *viewController = [[MainViewController alloc] init];
-    viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
-    viewController.startPage =  @"index.html";
     
-    // AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
-    appDelegate.viewController = viewController;
-    appDelegate.window.rootViewController = viewController;
-    [appDelegate.window makeKeyAndVisible];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"升级提示"
+                                                    message:@"恭喜你，升级完成"
+                                                   delegate:self
+                                          cancelButtonTitle:@"确定"
+                                          otherButtonTitles:nil ];
+    alert.tag = 100;
+    [alert show];
+    
+    //    AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+    //
+    //        MainViewController *viewController = [[MainViewController alloc] init];
+    //        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+    //        viewController.startPage =  @"index.html";
+    //
+    //       // AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+    //        appDelegate.viewController = viewController;
+    //        appDelegate.window.rootViewController = viewController;
+    //        [appDelegate.window makeKeyAndVisible];
     //  }
     
 }
@@ -309,6 +319,18 @@
     }
     else if(alertView.tag == 4 && buttonIndex == 1){// 下载
         [self starDownzip];
+    }
+    if(alertView.tag == 100){//重新启动应用
+        AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+        
+        MainViewController *viewController = [[MainViewController alloc] init];
+        viewController.wwwFolderName = [NSString stringWithFormat:@"file://%@",[FileHelper getVersionPath]];
+        viewController.startPage =  @"index.html";
+        
+        // AppDelegate *appDelegate = [[UIApplication  sharedApplication] delegate];
+        appDelegate.viewController = viewController;
+        appDelegate.window.rootViewController = viewController;
+        [appDelegate.window makeKeyAndVisible];
     }
 }
 
